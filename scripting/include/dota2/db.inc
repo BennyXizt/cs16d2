@@ -7,64 +7,74 @@
 #include <amxmisc>
 #include <mysql>
 
-static PLUGIN[] = "DOTA 2 Core";
-
 static DB_HOST[] = "127.0.0.1:8889";
 static DB_USER[] = "cs";
 static DB_PASSWORD[] = "cs_password";
 static DB_DATABASE[] = "cs_16";
 
-new Handle:db;
-new db_errorcode;
-new db_errorstring[256];
+static Handle:db;
+static db_errorcode;
+static db_errorstring[256];
 
-public Dota2DBInit() {
-    db = DBConnect();
-    if (db == 0) return 0;
-
-    if (!DBInit()) return 0;
-
-    return 1;
+static Dota2DBGetClientInitialData(id) {
+  g_PlayerHero[id] = -1;
+  
+  for (new i; i < MAX_HEROES; i++) {
+    g_HeroCurrLevels[id][i] = 0;
+    g_HeroCurrExps[id][i] = 0;
+  }
 }
 
-public Dota2DBSaveUserOnConnect(id) {
- new name[32];
- get_user_name(id, name, sizeof(name));
- 
-  new steamid[32];
- get_user_authid(id, steamid, sizeof(steamid));
+public Dota2DBInit() {
+  DBConnect();
 
-  new query[256];
-  format(query, sizeof(query),
-       "INSERT INTO `users` (`user`, `steamid`) VALUES ('%s', '%s') ON DUPLICATE KEY UPDATE `user` = VALUES (`user`), `last_seen` = CURRENT_TIMESTAMP;",
-       name, steamid);
-       
-  if (!SQL_SimpleQuery(db, query)) {
-     SQL_QueryError(db, db_errorstring, sizeof(db_errorstring));
-     server_print("[%s]: Failed to add new user in table `users`: %s", PLUGIN, db_errorstring);
-     return 0;
-  } else {
-    server_print("[%s]: user already exists", PLUGIN);
-  }
-  
+  if (db == Empty_Handle) return 0;
+
+  if (!DBInit()) return 0;
+
   return 1;
 }
 
-public Dota2DBSaveUserOnDisconnect(id) {
+public Dota2DBSaveUserOnConnect(id) {
+  new name[32];
+  get_user_name(id, name, sizeof(name));
+
+  new steamid[32];
+  get_user_authid(id, steamid, sizeof(steamid));
+
+  new query[256];
+  format(query, sizeof(query),
+        "INSERT INTO `users` (`user`, `steamid`) VALUES ('%s', '%s') ON DUPLICATE KEY UPDATE `user` = VALUES (`user`), `last_seen` = CURRENT_TIMESTAMP;",
+        name, steamid);
+        
+  if (!SQL_SimpleQuery(db, query)) {
+    SQL_QueryError(db, db_errorstring, sizeof(db_errorstring));
+    server_print("[%s]: Failed to add new user in table `users`: %s", PLUGIN, db_errorstring);
+    return 0;
+  } else {
+    server_print("[%s]: user already exists", PLUGIN);
+  }
+
+  Dota2DBGetClientInitialData(id);
+
+  return 1;
+}
+
+public Dota2DBUpdateUser(id) {
   new steamid[32];
   new kills = get_user_frags(id);  
   new deaths = get_user_deaths(id);
-  
+
   get_user_authid(id, steamid, sizeof(steamid));
-  
+
   if(kills < 0) kills = 0;
-  
+
   new query[256];
-   format(query, sizeof(query),
-           "UPDATE `users` SET `last_seen` = CURRENT_TIMESTAMP, `kills` = %d, `death` = %d  WHERE steamid = '%s';",
-           kills, deaths, steamid);
-	   
- if (!SQL_SimpleQuery(db, query))
+  format(query, sizeof(query),
+            "UPDATE `users` SET `last_seen` = CURRENT_TIMESTAMP, `kills` = %d, `death` = %d  WHERE steamid = '%s';",
+            kills, deaths, steamid);
+      
+  if (!SQL_SimpleQuery(db, query))
   {
     SQL_QueryError(db, db_errorstring, sizeof(db_errorstring));
     server_print("[%s]: Failed to update last_seen for %s: %s", PLUGIN, steamid, db_errorstring);
@@ -91,7 +101,7 @@ static DBConnect() {
     return 0;	
   }
   
-  return db;
+  return 1;
 }
 
 static DBInit() {
@@ -99,12 +109,12 @@ static DBInit() {
   
   if (!SQL_SimpleQuery(db, queryUsers)) {
     format(db_errorstring, sizeof(db_errorstring),
-       "[%s]: Failed to create table `users`: %s",
-       PLUGIN, db_errorstring);
-       
-     SQL_QueryError(db, db_errorstring, sizeof(db_errorstring));
-     set_fail_state(db_errorstring);
-     return 0;	
+      "[%s]: Failed to create table `users`: %s",
+      PLUGIN, db_errorstring);
+      
+    SQL_QueryError(db, db_errorstring, sizeof(db_errorstring));
+    set_fail_state(db_errorstring);
+    return 0;	
   } else {
     server_print("[%s]: Table `users` created or already exists", PLUGIN);
   }
@@ -113,12 +123,12 @@ static DBInit() {
   
   if (!SQL_SimpleQuery(db, queryHeroes)) {
     format(db_errorstring, sizeof(db_errorstring),
-       "[%s]: Failed to create table `heroes`: %s",
-       PLUGIN, db_errorstring);
-       
-     SQL_QueryError(db, db_errorstring, sizeof(db_errorstring));
-     set_fail_state(db_errorstring);
-     return 0;
+      "[%s]: Failed to create table `heroes`: %s",
+      PLUGIN, db_errorstring);
+      
+    SQL_QueryError(db, db_errorstring, sizeof(db_errorstring));
+    set_fail_state(db_errorstring);
+    return 0;
   } else {
     server_print("[%s]: Table `heroes` created or already exists", PLUGIN);
   }
