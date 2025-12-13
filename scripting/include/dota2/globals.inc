@@ -3,17 +3,22 @@
 #endif
 #define _dota2globals_included
 
+#include <amxmodx>
+#include <amxmisc>
+#include <hamsandwich>
+
 #define PLUGIN "DOTA 2 Core"
 #define VERSION "1.0"
 #define AUTHOR "me3"
 
 const MAX_PLAYERS = 64;
-const MAX_HEROES = 2;
 
-new g_HeroNames[MAX_HEROES][] = {
+new g_HeroNames[][] = {
   "Wraith King",
   "Sniper"
 };
+
+const MAX_HEROES = sizeof(g_HeroNames);
 
 new g_HeroCurrLevels[MAX_PLAYERS][MAX_HEROES];
 new g_HeroCurrExps[MAX_PLAYERS][MAX_HEROES];
