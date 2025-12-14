@@ -3,10 +3,6 @@
 #endif
 #define _dota2db_included
 
-#include <amxmodx>
-#include <amxmisc>
-#include <mysql>
-
 static DB_HOST[] = "127.0.0.1:8889";
 static DB_USER[] = "cs";
 static DB_PASSWORD[] = "cs_password";

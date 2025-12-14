@@ -6,6 +6,8 @@
 #include <amxmodx>
 #include <amxmisc>
 #include <hamsandwich>
+#include <mysql>
+#include <cstrike>
 
 #define PLUGIN "DOTA 2 Core"
 #define VERSION "1.0"
@@ -17,6 +19,16 @@ new g_HeroNames[][] = {
   "Wraith King",
   "Sniper"
 };
+
+new g_TeamNames[][] = {
+  "Radiant",
+  "Dire"
+}
+
+new g_TeamColors[][] = {
+  "\w",
+  "\w"
+}
 
 const MAX_HEROES = sizeof(g_HeroNames);
 

@@ -4,7 +4,7 @@
 #define _dota2core_included
 
 public Dota2CoreShowHeroMenu(id) {
-  if(!is_user_connected(id) || is_user_bot(id)) return 0
+  if(!is_user_connected(id) || is_user_bot(id)) return 0;
   
   new menu = menu_create("Choose Hero:", "Dota2CoreShowHeroMenuHandler");
   new buffer[64];
@@ -67,4 +67,44 @@ public Dota2CoreAddHeroExp(id, exp) {
   PrintChatF(id, "Gained %d exp || Curr exp [%d/%d]", exp, g_HeroCurrExps[id][currHero], expToLVLUP);
   
   return 1;
+}
+
+public Dota2CoreShowTeamMenu(id) {
+  if(!is_user_connected(id) || is_user_bot(id)) return 0;
+  
+  new menu = menu_create("Select a side", "Dota2CoreShowTeamMenuHandler");
+  new buffer[64];
+  
+  for(new i = 0; i < sizeof(g_TeamNames); i++) {
+    formatex(buffer, charsmax(buffer), "%s%s", g_TeamColors[i], g_TeamNames[i]);
+    menu_additem(menu, buffer);
+  }
+  menu_additem(menu, "Auto-select");
+  menu_additem(menu, "Spectator");
+  
+  menu_display(id, menu, 0);
+  
+  return PLUGIN_HANDLED;
+  
+}
+
+public Dota2CoreShowTeamMenuHandler(id, menu, item) {
+  switch(item) {
+    case 0: {
+      client_cmd(id, "jointeam %d", CS_TEAM_CT);
+    }
+    case 1: {
+      client_cmd(id, "jointeam %d", CS_TEAM_T);
+    }
+    case 2: {
+      new teams[] = {CS_TEAM_CT, CS_TEAM_T};
+      new index = random(2);
+      
+      client_cmd(id, "jointeam %d", teams[index]);
+    }
+    case 3: {
+      client_cmd(id, "jointeam %d", CS_TEAM_SPECTATOR);
+    }
+  }
+  return PLUGIN_CONTINUE;
 }

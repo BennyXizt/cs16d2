@@ -11,13 +11,14 @@ public plugin_init() {
   
   Dota2DBInit();
   Dota2CMDRegisterCommands();
+  
   RegisterHam(Ham_Spawn, "player", "onPlayerSpawn", 1);
 }
 
 public client_putinserver(id) {
   if(!is_user_connected(id) || is_user_bot(id)) return PLUGIN_CONTINUE; 
-  
   Dota2DBSaveUserOnConnect(id);
+  
   return PLUGIN_CONTINUE;
 }
 
@@ -25,7 +26,6 @@ public client_disconnect(id) {
   Dota2DBUpdateUser(id);
   return PLUGIN_CONTINUE;
 }
-
 
 public onPlayerSpawn(id) {
   if(!is_user_alive(id)) return HAM_IGNORED;
